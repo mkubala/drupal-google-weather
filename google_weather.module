@@ -1,0 +1,166 @@
+<?php
+// $Id: google_weather.module,v 1.0 2010/07/10 19:06:00 m.kubala Exp $
+
+function google_weather_menu() {
+  $pozycje = array();
+  
+  $pozycje['admin/settings/google-weather'] = array(
+    'title' => 'Konfiguracja prognozy pogody',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('google_weather_admin'),
+    'access arguments' => array('konfiguracja prognozy pogody'),
+    'type' => MENU_NORMAL_ITEM
+  );
+  
+  return $pozycje;
+}
+
+function google_weather_perm() {
+  return array('konfiguracja prognozy pogody');
+}
+
+function google_weather_admin() {
+  $form = array();
+
+  $form['gw_location'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Miasto'),
+    '#default_value' => variable_get('gw_location', 'Kraków'),
+    '#required' => TRUE,
+  );
+
+  $form['gw_days'] = array(
+    '#type' => 'select',
+    '#title' => t('Na ile dni ma być podawana prognoza pogody?'),
+    '#default_value' => variable_get('gw_days', 3),
+    '#options' => array(
+      '2' => 1,
+      '3' => 2,
+      '4' => 3,
+      '5' => 4,
+    ),
+    '#description' => t('Ilość dni włącznie z dziś'),
+    '#required' => TRUE,
+  );
+  
+  $form['gw_fetch'] = array(
+    '#type' => 'fieldset',
+    '#title' => t("Konfiguracja połączenia z Pogodą Google"),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  
+  $form['gw_fetch']['gw_timeout'] = array(
+    '#type' => 'textfield',
+    '#title' => t("Limit czasu dla pobierania informacji"),
+    '#default_value' => variable_get('gw_timeout', 10),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
+function google_weather_block($op = 'list', $delta = 0, $edit = array()) { 
+  if($op == 'list') {
+      $block = array();
+      $block[0]["info"] = t('Pogoda dla miasta %miasto% na najbliższe %dni% dni', 
+        array(
+          '%miasto%' => variable_get('gw_region', 'Kraków'), 
+          '%dni%' => variable_get('gw_days', 3))
+        );
+      return $block;
+  } else if ($op == 'view') {
+      $block['title'] = t("Pogoda");
+      $block['content'] = google_weather_get_content();
+      return $block;
+  }
+}
+
+function google_weather_get_content() {
+  $error_message = t('Wystąpił błąd podczas pobierania informacji o pogodzie.');
+  
+  $api = "http://www.google.com/ig/api?hl=pl&weather=";
+
+  $url = $api.urlencode(variable_get('gw_location', 'Kraków'));
+
+  $cv = @curl_version();
+  if(!is_array($cv)) { 
+    watchdog('google weather', 'Musisz zainstalować cURL aby pobierać informacje o pogodzie', array(), WATCHDOG_ERROR);
+    return $error_message;
+  }
+  
+  $ch = @curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_TIMEOUT, variable_get('gw_timeout', 20));
+  $data = @curl_exec($ch);
+  $encoding = array_pop(explode('charset=', curl_getinfo($ch, CURLINFO_CONTENT_TYPE)));
+  curl_close($ch);
+
+  if($encoding != 'UTF-8') $data = @iconv($encoding, "UTF-8", $data);
+
+  $xml = @simplexml_load_string($data);
+
+  if ($xml) {
+    if ($xml->weather->problem_cause) {
+      $blad = $xml->weather->problem_cause->attributes()->data;
+      return $blad;
+    }
+    
+    $handler = $xml->weather;
+    
+    $content = array();
+    $content['info'] = array (
+      'location' => (string)$handler->forecast_information->postal_code->attributes()->data,
+      'date' => (string)$handler->forecast_information->forecast_date->attributes()->data,
+    );
+    
+    $today = &$handler->current_conditions;
+    $condition = (string)$today->condition->attributes()->data;
+    $content['current'] = array(
+        'temp' => (string)$today->temp_c->attributes()->data,
+        'humidity' => (string)$today->humidity->attributes()->data,
+        'icon' => theme('image', 'http://www.google.com' . (string)$today->icon->attributes()->data, $condition, $condition, NULL, FALSE),
+        'condition' => $condition,
+        'wind_condition' => (string)$today->wind_condition->attributes()->data,
+      );
+    
+    $i = 0;
+    $content['forecast'] = array();
+    
+    foreach($handler->forecast_conditions as $nextdays) {
+      $i++;
+      if($i >= variable_get('gw_days', 3)) continue;
+      $condition = (string)$nextdays->condition->attributes()->data;
+      $content['forecast'][$i] = array(
+        'day' => ($i == 1) ? t("Dziś") : ucwords((string)$nextdays->day_of_week->attributes()->data),
+        'low_temp' => (string)$nextdays->low->attributes()->data,
+        'high_temp' => (string)$nextdays->high->attributes()->data,
+        'icon' => theme('image', 'http://www.google.com' . (string)$nextdays->icon->attributes()->data, $condition, $condition, NULL, FALSE),
+        'condition' => $condition,
+      );
+    }
+    
+    drupal_add_css(drupal_get_path('module', 'google_weather') . '/google_weather.css');
+    
+    return theme('google_weather_block', $content);
+
+  } else {
+    return $error_message;
+  }
+}
+
+function google_weather_theme() {
+  return array(
+    'google_weather_block' => array(
+      'template' => 'google_weather-block',
+      'arguments' => array('content' => NULL),
+    ),
+  );
+}
+
+/*function template_preprocess_weather_block(&$variables) {
+  
+}*/
+
