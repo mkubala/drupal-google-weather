@@ -15,7 +15,7 @@
   </div>
 
   <div class="separator">
-    <?php print t("Prognoza pogody"); ?>
+    <?php print t("Weather Forecast"); ?>
   </div>
 
   <?php foreach($content['forecast'] as $id => $forecast): ?>

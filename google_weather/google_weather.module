@@ -5,10 +5,10 @@ function google_weather_menu() {
   $pozycje = array();
   
   $pozycje['admin/settings/google-weather'] = array(
-    'title' => 'Konfiguracja prognozy pogody',
+    'title' => t("Weather Forecast from Google"),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('google_weather_admin'),
-    'access arguments' => array('konfiguracja prognozy pogody'),
+    'access arguments' => array('configure weather forecast'),
     'type' => MENU_NORMAL_ITEM
   );
   
@@ -16,7 +16,7 @@ function google_weather_menu() {
 }
 
 function google_weather_perm() {
-  return array('konfiguracja prognozy pogody');
+  return array('configure weather forecast');
 }
 
 function google_weather_admin() {
@@ -24,14 +24,14 @@ function google_weather_admin() {
 
   $form['gw_location'] = array(
     '#type' => 'textfield',
-    '#title' => t('Miasto'),
-    '#default_value' => variable_get('gw_location', 'Kraków'),
+    '#title' => t("Location"),
+    '#default_value' => variable_get('gw_location', 'London'),
     '#required' => TRUE,
   );
 
   $form['gw_days'] = array(
     '#type' => 'select',
-    '#title' => t('Na ile dni ma być podawana prognoza pogody?'),
+    '#title' => t("How long forecast you want?"),
     '#default_value' => variable_get('gw_days', 3),
     '#options' => array(
       '2' => 1,
@@ -39,20 +39,20 @@ function google_weather_admin() {
       '4' => 3,
       '5' => 4,
     ),
-    '#description' => t('Ilość dni włącznie z dziś'),
+    '#description' => t("Number of days, including today forecast"),
     '#required' => TRUE,
   );
   
   $form['gw_fetch'] = array(
     '#type' => 'fieldset',
-    '#title' => t("Konfiguracja połączenia z Pogodą Google"),
+    '#title' => t("Configure connection with Google"),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
   
   $form['gw_fetch']['gw_timeout'] = array(
     '#type' => 'textfield',
-    '#title' => t("Limit czasu dla pobierania informacji"),
+    '#title' => t("Connection timeout"),
     '#default_value' => variable_get('gw_timeout', 10),
     '#required' => TRUE,
   );
@@ -63,29 +63,27 @@ function google_weather_admin() {
 function google_weather_block($op = 'list', $delta = 0, $edit = array()) { 
   if($op == 'list') {
       $block = array();
-      $block[0]["info"] = t('Pogoda dla miasta %miasto% na najbliższe %dni% dni', 
-        array(
-          '%miasto%' => variable_get('gw_region', 'Kraków'), 
-          '%dni%' => variable_get('gw_days', 3))
-        );
+      $block[0]["info"] = t("Weather forecast"); 
       return $block;
   } else if ($op == 'view') {
-      $block['title'] = t("Pogoda");
+      $block['title'] = t("Weather");
       $block['content'] = google_weather_get_content();
       return $block;
   }
 }
 
 function google_weather_get_content() {
-  $error_message = t('Wystąpił błąd podczas pobierania informacji o pogodzie.');
+  global $language;
   
-  $api = "http://www.google.com/ig/api?hl=pl&weather=";
+  $error_message = t("Error. Couldn't get information from google.");
+  
+  $api = "http://www.google.com/ig/api?hl=" . $language->language . "&weather=";
 
-  $url = $api.urlencode(variable_get('gw_location', 'Kraków'));
+  $url = $api.urlencode(variable_get('gw_location', 'London'));
 
   $cv = @curl_version();
   if(!is_array($cv)) { 
-    watchdog('google weather', 'Musisz zainstalować cURL aby pobierać informacje o pogodzie', array(), WATCHDOG_ERROR);
+    watchdog('google weather', t("cURL is needed for download information about weather forecast from Google."), array(), WATCHDOG_ERROR);
     return $error_message;
   }
   
@@ -159,8 +157,3 @@ function google_weather_theme() {
     ),
   );
 }
-
-/*function template_preprocess_weather_block(&$variables) {
-  
-}*/
-

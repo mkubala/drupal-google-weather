@@ -1,4 +1,4 @@
 ; $Id: google_weather.module,v 1.0 2010/07/10 19:06:00 m.kubala Exp $
 name = Google Weather
-description = Prognozy pogody Google Weather
+description = Module providing block with weather forecast from Google
 core = 6.x
