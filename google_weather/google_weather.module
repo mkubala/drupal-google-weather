@@ -31,7 +31,7 @@ function google_weather_admin() {
 
   $form['gw_days'] = array(
     '#type' => 'select',
-    '#title' => t("How long forecast you want?"),
+    '#title' => t("How long forecast do you want?"),
     '#default_value' => variable_get('gw_days', 3),
     '#options' => array(
       '2' => 1,
@@ -75,7 +75,7 @@ function google_weather_block($op = 'list', $delta = 0, $edit = array()) {
 function google_weather_get_content() {
   global $language;
   
-  $error_message = t("Error. Couldn't get information from google.");
+  $error_message = t("Error. Couldn't get information from Google.");
   
   $api = "http://www.google.com/ig/api?hl=" . $language->language . "&weather=";
 
@@ -83,7 +83,7 @@ function google_weather_get_content() {
 
   $cv = @curl_version();
   if(!is_array($cv)) { 
-    watchdog('google weather', t("cURL is needed for download information about weather forecast from Google."), array(), WATCHDOG_ERROR);
+    watchdog('google weather', t("Required cURL for download information about weather forecast from Google."), array(), WATCHDOG_ERROR);
     return $error_message;
   }
   
@@ -132,7 +132,7 @@ function google_weather_get_content() {
       if($i >= variable_get('gw_days', 3)) continue;
       $condition = (string)$nextdays->condition->attributes()->data;
       $content['forecast'][$i] = array(
-        'day' => ($i == 1) ? t("Dziś") : ucwords((string)$nextdays->day_of_week->attributes()->data),
+        'day' => ($i == 1) ? t("Today") : ucwords((string)$nextdays->day_of_week->attributes()->data),
         'low_temp' => (string)$nextdays->low->attributes()->data,
         'high_temp' => (string)$nextdays->high->attributes()->data,
         'icon' => theme('image', 'http://www.google.com' . (string)$nextdays->icon->attributes()->data, $condition, $condition, NULL, FALSE),
