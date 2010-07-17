@@ -39,15 +39,15 @@
 }
 
 .weather-wrapper .weather .weather-icon  {
-  padding: 6px 20px 12px 0;
-  margin-left: 20px;
+  padding: 6px 10px 12px 0;
+  margin-left: 0px;
 }
 
 .weather-wrapper .weather .weather-info {
   width: 130px;
   border-left: 1px solid #c9c9c6;
-  padding-left: 20px; 
-  margin-right: 20px;
+  padding-left: 10px; 
+  margin-right: 0px;
 }
 
 .weather-wrapper .weather .weather-info .temp , 

@@ -1,0 +1,24 @@
+<?php
+
+function google_weather_uninstall() {
+  // Delete google weather variables.
+  foreach (variable_get('gw_ids', array()) AS $delta) {
+    variable_del("gw_location_{$delta}");
+    variable_del("gw_days_{$delta}");
+  }
+  variable_del('gw_ids');
+  variable_del('gw_timeout');
+  
+  db_query("DELETE FROM {blocks} WHERE module = 'menu_block'");
+  db_query("DELETE FROM {blocks_roles} WHERE module = 'menu_block'");
+  
+  cache_clear_all();
+}
+
+function google_weather_enable() {
+  drupal_set_message(t('To use Google Weather module, find the "Add google weather block" tab (or button) on the <a href="@url">administer blocks page</a>.', array('@url' => url('admin/build/block'))));
+}
+
+function google_weather_install() {
+  // No-op.
+}

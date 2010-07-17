@@ -6,7 +6,7 @@
       <?php print $content['current']['icon']; ?>
     </div>
     <div class="weather-info forecast-info float-left">
-      <b><?php print t('Teraz'); ?></b><br/>
+      <b><?php print t("Now"); ?></b><br/>
       <div class="temp"><?php print $content['current']['temp']; ?>°C</div>
       <div class="condition"><?php print $content['current']['condition']; ?></div>
       <div class="wind"><?php print $content['current']['wind_condition']; ?></div>

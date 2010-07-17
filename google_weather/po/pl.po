@@ -44,3 +44,18 @@ msgstr "Wymagany jest cURL do pobierania informacji o prognozie pogody z Google.
 
 msgid "Today"
 msgstr "Dziś"
+
+msgid "Now"
+msgstr "Teraz"
+
+msgid "Weather for "
+msgstr "Prognoza dla: "
+
+msgid "Add google weather block"
+msgstr "Dodaj blok prognozy pogody google"
+
+msgid "Add a new weather forecast block."
+msgstr "Dodaj nowy blok prognozy pogody."
+
+msgid "Delete google weather block"
+msgstr "Usuń blok prognozy pogody"

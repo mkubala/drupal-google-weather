@@ -2,9 +2,9 @@
 // $Id: google_weather.module,v 1.0 2010/07/10 19:06:00 m.kubala Exp $
 
 function google_weather_menu() {
-  $pozycje = array();
+  $items = array();
   
-  $pozycje['admin/settings/google-weather'] = array(
+  $items['admin/settings/google-weather'] = array(
     'title' => t("Weather Forecast from Google"),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('google_weather_admin'),
@@ -12,7 +12,26 @@ function google_weather_menu() {
     'type' => MENU_NORMAL_ITEM
   );
   
-  return $pozycje;
+  $items['admin/build/block/add-google-weather-block'] = array(
+    'title' => t("Add google weather block"),
+    'description' => t("Add a new weather forecast block."),
+    'access arguments' => array('administer blocks'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('google_weather_block_add_block_form'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'google_weather.admin.inc'
+  );
+  
+  $items['admin/build/block/delete-google-weather-block'] = array(
+    'title' => t("Delete google weather block"),
+    'access arguments' => array('administer blocks'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('google_weather_delete'),
+    'type' => MENU_CALLBACK,
+    'file' => 'google_weather.admin.inc',
+  );
+  
+  return $items;
 }
 
 function google_weather_perm() {
@@ -22,32 +41,11 @@ function google_weather_perm() {
 function google_weather_admin() {
   $form = array();
 
-  $form['gw_location'] = array(
-    '#type' => 'textfield',
-    '#title' => t("Location"),
-    '#default_value' => variable_get('gw_location', 'London'),
-    '#required' => TRUE,
-  );
-
-  $form['gw_days'] = array(
-    '#type' => 'select',
-    '#title' => t("How long forecast do you want?"),
-    '#default_value' => variable_get('gw_days', 3),
-    '#options' => array(
-      '2' => 1,
-      '3' => 2,
-      '4' => 3,
-      '5' => 4,
-    ),
-    '#description' => t("Number of days, including today forecast"),
-    '#required' => TRUE,
-  );
-  
   $form['gw_fetch'] = array(
     '#type' => 'fieldset',
     '#title' => t("Configure connection with Google"),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => FALSE,
   );
   
   $form['gw_fetch']['gw_timeout'] = array(
@@ -61,25 +59,30 @@ function google_weather_admin() {
 }
 
 function google_weather_block($op = 'list', $delta = 0, $edit = array()) { 
-  if($op == 'list') {
-      $block = array();
-      $block[0]["info"] = t("Weather forecast"); 
-      return $block;
-  } else if ($op == 'view') {
-      $block['title'] = t("Weather");
-      $block['content'] = google_weather_get_content();
-      return $block;
+  if ($op == 'view') {
+    $block['title'] = t("Weather");
+    $block['content'] = google_weather_get_content($delta);
+    return $block;
+  } else {
+    $function = 'google_weather_block_' . $op;
+    module_load_include('inc', 'google_weather', 'google_weather.admin');
+    if(function_exists($function))
+      return $function($delta, $edit);
   }
 }
 
-function google_weather_get_content() {
+function google_weather_get_content($delta) {
   global $language;
-  
+
   $error_message = t("Error. Couldn't get information from Google.");
+
+  if(!isset($delta) || !is_numeric($delta)) {
+    return $error_message;
+  }
   
   $api = "http://www.google.com/ig/api?hl=" . $language->language . "&weather=";
 
-  $url = $api.urlencode(variable_get('gw_location', 'London'));
+  $url = $api.urlencode(variable_get("gw_location_{$delta}", 'London'));
 
   $cv = @curl_version();
   if(!is_array($cv)) { 
@@ -129,7 +132,7 @@ function google_weather_get_content() {
     
     foreach($handler->forecast_conditions as $nextdays) {
       $i++;
-      if($i >= variable_get('gw_days', 3)) continue;
+      if($i >= variable_get("gw_days_{$delta}", 3)) continue;
       $condition = (string)$nextdays->condition->attributes()->data;
       $content['forecast'][$i] = array(
         'day' => ($i == 1) ? t("Today") : ucwords((string)$nextdays->day_of_week->attributes()->data),
@@ -156,4 +159,9 @@ function google_weather_theme() {
       'arguments' => array('content' => NULL),
     ),
   );
+}
+
+function google_weather_form_block_admin_display_form_alter(&$form, $form_state) {
+  module_load_include('inc', 'google_weather', 'google_weather.admin');
+  google_weather_block_list_alter($form, $form_state);
 }
