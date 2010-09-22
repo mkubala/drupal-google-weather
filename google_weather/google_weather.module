@@ -1,43 +1,52 @@
 <?php
-// $Id: google_weather.module,v 1.0 2010/07/10 19:06:00 m.kubala Exp $
+// $Id: google_weather.module,v 1.0 2010/09/22 19:45:59 m.kubala Exp $
 
+/**
+ * Implements hook_menu().
+ */
 function google_weather_menu() {
   $items = array();
-  
+
   $items['admin/settings/google-weather'] = array(
-    'title' => t("Weather Forecast from Google"),
+    'title' => "Weather Forecast from Google",
     'page callback' => 'drupal_get_form',
     'page arguments' => array('google_weather_admin'),
     'access arguments' => array('configure weather forecast'),
     'type' => MENU_NORMAL_ITEM
   );
-  
+
   $items['admin/build/block/add-google-weather-block'] = array(
-    'title' => t("Add google weather block"),
-    'description' => t("Add a new weather forecast block."),
+    'title' => "Add google weather block",
+    'description' => "Add a new weather forecast block",
     'access arguments' => array('administer blocks'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('google_weather_block_add_block_form'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'google_weather.admin.inc'
   );
-  
+
   $items['admin/build/block/delete-google-weather-block'] = array(
-    'title' => t("Delete google weather block"),
+    'title' => "Delete google weather block",
     'access arguments' => array('administer blocks'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('google_weather_delete'),
     'type' => MENU_CALLBACK,
     'file' => 'google_weather.admin.inc',
   );
-  
+
   return $items;
 }
 
+/**
+ * Implements hook_perm().
+ */
 function google_weather_perm() {
   return array('configure weather forecast');
 }
 
+/**
+ * Implements hook_admin().
+ */
 function google_weather_admin() {
   $form = array();
 
@@ -47,7 +56,7 @@ function google_weather_admin() {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-  
+
   $form['gw_fetch']['gw_timeout'] = array(
     '#type' => 'textfield',
     '#title' => t("Connection timeout"),
@@ -58,48 +67,62 @@ function google_weather_admin() {
   return system_settings_form($form);
 }
 
-function google_weather_block($op = 'list', $delta = 0, $edit = array()) { 
+/**
+ * Implements hook_block().
+ */
+function google_weather_block($op = 'list', $delta = 0, $edit = array()) {
   if ($op == 'view') {
     $block['title'] = t("Weather");
     $block['content'] = google_weather_get_content($delta);
     return $block;
-  } else {
+  }
+  else {
     $function = 'google_weather_block_' . $op;
     module_load_include('inc', 'google_weather', 'google_weather.admin');
-    if(function_exists($function))
+    if (function_exists($function))
       return $function($delta, $edit);
   }
 }
 
+/**
+ * Helper function for getting and theming forecast.
+ * 
+ * @param $delta
+ *  integer Which block to return - index of google weather block.
+ * 
+ * @return
+ *  string This function return themed content for block.
+ */
 function google_weather_get_content($delta) {
   global $language;
 
-  $error_message = t("Error. Couldn't get information from Google.");
+  $error_message = t("Error. Couldn't get information from Google");
 
-  if(!isset($delta) || !is_numeric($delta)) {
+  if (!isset($delta) || !is_numeric($delta)) {
     return $error_message;
   }
-  
+
   $api = "http://www.google.com/ig/api?hl=" . $language->language . "&weather=";
 
-  $url = $api.urlencode(variable_get("gw_location_{$delta}", 'London'));
+  $url = $api . urlencode(variable_get("gw_location_{$delta}", 'London'));
 
   $cv = @curl_version();
-  if(!is_array($cv)) { 
-    watchdog('google weather', t("Required cURL for download information about weather forecast from Google."), array(), WATCHDOG_ERROR);
+  if (!is_array($cv)) {
+    watchdog('google weather', "Required cURL for download information about weather forecast from Google.", array(), WATCHDOG_ERROR);
     return $error_message;
   }
-  
+
   $ch = @curl_init();
-	curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_URL, $url);
   curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
   curl_setopt($ch, CURLOPT_TIMEOUT, variable_get('gw_timeout', 20));
+
   $data = @curl_exec($ch);
   $encoding = array_pop(explode('charset=', curl_getinfo($ch, CURLINFO_CONTENT_TYPE)));
   curl_close($ch);
 
-  if($encoding != 'UTF-8') $data = @iconv($encoding, "UTF-8", $data);
+  if ($encoding != 'UTF-8') $data = @iconv($encoding, "UTF-8", $data);
 
   $xml = @simplexml_load_string($data);
 
@@ -108,50 +131,53 @@ function google_weather_get_content($delta) {
       $blad = $xml->weather->problem_cause->attributes()->data;
       return $blad;
     }
-    
+
     $handler = $xml->weather;
-    
+
     $content = array();
-    $content['info'] = array (
-      'location' => (string)$handler->forecast_information->postal_code->attributes()->data,
-      'date' => (string)$handler->forecast_information->forecast_date->attributes()->data,
+    $content['info'] = array(
+      'location' => (string) $handler->forecast_information->postal_code->attributes()->data,
+      'date' => (string) $handler->forecast_information->forecast_date->attributes()->data,
     );
-    
+
     $today = &$handler->current_conditions;
-    $condition = (string)$today->condition->attributes()->data;
+    $condition = (string) $today->condition->attributes()->data;
     $content['current'] = array(
-        'temp' => (string)$today->temp_c->attributes()->data,
-        'humidity' => (string)$today->humidity->attributes()->data,
+        'temp' => (string) $today->temp_c->attributes()->data,
+        'humidity' => (string) $today->humidity->attributes()->data,
         'icon' => theme('image', 'http://www.google.com' . (string)$today->icon->attributes()->data, $condition, $condition, NULL, FALSE),
         'condition' => $condition,
-        'wind_condition' => (string)$today->wind_condition->attributes()->data,
+        'wind_condition' => (string) $today->wind_condition->attributes()->data,
       );
-    
+
     $i = 0;
     $content['forecast'] = array();
-    
-    foreach($handler->forecast_conditions as $nextdays) {
+
+    foreach ($handler->forecast_conditions as $nextdays) {
       $i++;
-      if($i >= variable_get("gw_days_{$delta}", 3)) continue;
-      $condition = (string)$nextdays->condition->attributes()->data;
+      if ($i >= variable_get("gw_days_{$delta}", 3)) continue;
+      $condition = (string) $nextdays->condition->attributes()->data;
       $content['forecast'][$i] = array(
-        'day' => ($i == 1) ? t("Today") : ucwords((string)$nextdays->day_of_week->attributes()->data),
-        'low_temp' => (string)$nextdays->low->attributes()->data,
-        'high_temp' => (string)$nextdays->high->attributes()->data,
-        'icon' => theme('image', 'http://www.google.com' . (string)$nextdays->icon->attributes()->data, $condition, $condition, NULL, FALSE),
+        'day' => ($i == 1) ? t("Today") : ucwords((string) $nextdays->day_of_week->attributes()->data),
+        'low_temp' => (string) $nextdays->low->attributes()->data,
+        'high_temp' => (string) $nextdays->high->attributes()->data,
+        'icon' => theme('image', 'http://www.google.com' . (string) $nextdays->icon->attributes()->data, $condition, $condition, NULL, FALSE),
         'condition' => $condition,
       );
     }
-    
-    drupal_add_css(drupal_get_path('module', 'google_weather') . '/google_weather.css');
-    
-    return theme('google_weather_block', $content);
 
-  } else {
+    drupal_add_css(drupal_get_path('module', 'google_weather') . '/google_weather.css');
+
+    return theme('google_weather_block', $content);
+  }
+  else {
     return $error_message;
   }
 }
 
+/**
+ * Implements hook_theme().
+ */
 function google_weather_theme() {
   return array(
     'google_weather_block' => array(
@@ -161,6 +187,9 @@ function google_weather_theme() {
   );
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
 function google_weather_form_block_admin_display_form_alter(&$form, $form_state) {
   module_load_include('inc', 'google_weather', 'google_weather.admin');
   google_weather_block_list_alter($form, $form_state);

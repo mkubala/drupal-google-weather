@@ -18,11 +18,11 @@ msgstr "Prognoza pogody Google"
 msgid "Location"
 msgstr "Miejsce"
 
-msgid "How long forecast do you want?"
-msgstr "Ile dni ma obejmować prognoza?"
+msgid "Forecast time"
+msgstr "Długość prognozy"
 
 msgid "Number of days, including today forecast"
-msgstr "Ilość dni włącznie z dziś"
+msgstr "Ilość dni, włącznie z dziś"
 
 msgid "Configure connection with Google"
 msgstr "Konfiguracja połączenia z Google"
@@ -36,11 +36,8 @@ msgstr "Prognoza pogody"
 msgid "Weather"
 msgstr "Pogoda"
 
-msgid "Error. Couldn't get information from Google."
-msgstr "Błąd. Nie mogę pobrać informacji z Google."
-
-msgid "Required cURL for download information about weather forecast from Google."
-msgstr "Wymagany jest cURL do pobierania informacji o prognozie pogody z Google."
+msgid "Error. Couldn't get information from Google"
+msgstr "Błąd. Nie mogę pobrać informacji z Google"
 
 msgid "Today"
 msgstr "Dziś"
@@ -48,14 +45,5 @@ msgstr "Dziś"
 msgid "Now"
 msgstr "Teraz"
 
-msgid "Weather for "
-msgstr "Prognoza dla: "
-
-msgid "Add google weather block"
-msgstr "Dodaj blok prognozy pogody google"
-
-msgid "Add a new weather forecast block."
-msgstr "Dodaj nowy blok prognozy pogody."
-
-msgid "Delete google weather block"
-msgstr "Usuń blok prognozy pogody"
+msgid "Weather for @location"
+msgstr "Prognoza dla @location"

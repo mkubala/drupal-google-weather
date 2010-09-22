@@ -1,5 +1,14 @@
 <?php
+// $Id: google_weather.install,v 1.0 2010/09/22 22:25:04 m.kubala Exp $
 
+/**
+ * @file
+ * Install, update and uninstall functions for the google_weather module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
 function google_weather_uninstall() {
   // Delete google weather variables.
   foreach (variable_get('gw_ids', array()) AS $delta) {
@@ -8,17 +17,12 @@ function google_weather_uninstall() {
   }
   variable_del('gw_ids');
   variable_del('gw_timeout');
-  
-  db_query("DELETE FROM {blocks} WHERE module = 'menu_block'");
-  db_query("DELETE FROM {blocks_roles} WHERE module = 'menu_block'");
-  
-  cache_clear_all();
+
+  // Drop all blocks with google weather forecast, we don't need to store blank blocks.
+  db_query("DELETE FROM {blocks} WHERE module = 'google_weather'");
+  db_query("DELETE FROM {blocks_roles} WHERE module = 'google_weather'");
 }
 
 function google_weather_enable() {
   drupal_set_message(t('To use Google Weather module, find the "Add google weather block" tab (or button) on the <a href="@url">administer blocks page</a>.', array('@url' => url('admin/build/block'))));
-}
-
-function google_weather_install() {
-  // No-op.
 }
