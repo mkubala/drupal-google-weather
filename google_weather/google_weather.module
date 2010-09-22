@@ -86,10 +86,10 @@ function google_weather_block($op = 'list', $delta = 0, $edit = array()) {
 
 /**
  * Helper function for getting and theming forecast.
- * 
+ *
  * @param $delta
  *  integer Which block to return - index of google weather block.
- * 
+ *
  * @return
  *  string This function return themed content for block.
  */

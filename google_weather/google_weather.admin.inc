@@ -66,7 +66,7 @@ function google_weather_get_title($delta = 0) {
   return t("Weather for @location", array('@location' => $config['gw_location']));
 }
 
-/* 
+/**
  * Returns the 'list' $op info for hook_block().
  */
 function google_weather_block_list() {
