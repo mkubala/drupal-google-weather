@@ -1,5 +1,5 @@
 <?php
-// $Id: google_weather.install,v 1.0 2010/09/22 22:25:04 m.kubala Exp $
+// $Id: google_weather.install,v 1.0 2010/10/05 12:25:04 m.kubala Exp $
 
 /**
  * @file
@@ -11,12 +11,12 @@
  */
 function google_weather_uninstall() {
   // Delete google weather variables.
-  foreach (variable_get('gw_ids', array()) AS $delta) {
-    variable_del("gw_location_{$delta}");
-    variable_del("gw_days_{$delta}");
+  foreach (variable_get('google_weather_ids', array()) AS $delta) {
+    variable_del("google_weather_location_{$delta}");
+    variable_del("google_weather_days_{$delta}");
   }
-  variable_del('gw_ids');
-  variable_del('gw_timeout');
+  variable_del('google_weather_ids');
+  variable_del('google_weather_timeout');
 
   // Drop all blocks with google weather forecast, we don't need to store blank blocks.
   db_query("DELETE FROM {blocks} WHERE module = 'google_weather'");
