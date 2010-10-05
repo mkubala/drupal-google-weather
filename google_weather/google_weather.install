@@ -23,6 +23,10 @@ function google_weather_uninstall() {
   db_query("DELETE FROM {blocks_roles} WHERE module = 'google_weather'");
 }
 
+
+/**
+ * Implements hook_enable().
+ */
 function google_weather_enable() {
   drupal_set_message(t('To use Google Weather module, find the "Add google weather block" tab (or button) on the <a href="@url">administer blocks page</a>.', array('@url' => url('admin/build/block'))));
 }
