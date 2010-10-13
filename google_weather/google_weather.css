@@ -1,4 +1,4 @@
-/* $Id: google_weather.module,v 1.0 2010/07/10 19:06:00 m.kubala Exp $*/
+/* $Id$ */
 
 .float-left {
   float: left;
@@ -26,7 +26,7 @@
   font-weight: bold;
   padding-bottom: 6px;
   margin-bottom: 12px;
-  /*border-bottom: 1px solid #acacac;*/
+  border-bottom: 1px solid #acacac;
 }
 
 .weather-wrapper .location {

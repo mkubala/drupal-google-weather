@@ -1,5 +1,5 @@
 <?php
-// $Id: google_weather.admin.inc,v 1.0 2010/10/05 11:56:20 m.kubala Exp $
+// $Id$
 
 /**
  * @file

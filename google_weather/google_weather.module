@@ -1,5 +1,5 @@
 <?php
-// $Id: google_weather.module,v 1.0 2010/10/05 11:45:59 m.kubala Exp $
+// $Id$
 
 /**
  * Implements hook_menu().

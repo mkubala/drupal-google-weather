@@ -1,4 +1,4 @@
-<?php // $Id: google_weather-block.tpl.php,v 1.0 2010/07/10 19:06:00 m.kubala Exp $
+<?php // $Id$
 
 /**
  * @file

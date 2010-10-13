@@ -1,4 +1,4 @@
-; $Id: google_weather.module,v 1.0 2010/10/05 11:06:00 m.kubala Exp $
+; $Id$
 name = Google Weather
 description = Module providing block with weather forecast from Google
 core = 6.x
